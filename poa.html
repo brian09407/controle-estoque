@@ -2,29 +2,121 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>POA - Controle de Estoque</title>
   <style>
-    body {{
-      font-family: Arial, sans-serif;
-      background-color: #eef2f7;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
       padding: 20px;
-    }}
-    h1 {{
-      color: #333;
-    }}
-    .loja {{
-      background: white;
-      padding: 15px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
       margin: 10px 0;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }}
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #e9ecef;
+    }
   </style>
 </head>
 <body>
-<h1>Lojas - POA</h1>
-<div class="loja">Loja 1 - Exemplo</div>
-<div class="loja">Loja 2 - Exemplo</div>
+  <div class="container">
+    <h2>Controle de Retirada - POA</h2>
+
+    <label for="loja">Selecionar Loja:</label>
+    <select id="loja">
+      <option>Brandshouse</option>
+      <option>Platinum</option>
+      <option>Ellus Barra Sul</option>
+      <option>Ellus Iguatemi</option>
+      <option>Ellus Praia de Belas</option>
+      <option>Richards Iguatemi</option>
+      <option>Richards Moinhos</option>
+      <option>Richards Barra Sul</option>
+      <option>Tommy Platinum</option>
+      <option>VR Barra Sul</option>
+      <option>VR Iguatemi</option>
+    </select>
+
+    <label for="material">Material retirado:</label>
+    <input type="text" id="material" placeholder="Ex: Fita isolante">
+
+    <label for="quantidade">Quantidade:</label>
+    <input type="number" id="quantidade" placeholder="Ex: 2">
+
+    <button onclick="registrarRetirada()">Registrar Retirada</button>
+
+    <table id="tabela-retiradas">
+      <thead>
+        <tr>
+          <th>Loja</th>
+          <th>Material</th>
+          <th>Quantidade</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Registros vão aqui -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function registrarRetirada() {
+      const loja = document.getElementById('loja').value;
+      const material = document.getElementById('material').value;
+      const quantidade = document.getElementById('quantidade').value;
+      const data = new Date().toLocaleString();
+
+      if (!material || !quantidade) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+      }
+
+      const tabela = document.getElementById('tabela-retiradas').getElementsByTagName('tbody')[0];
+      const novaLinha = tabela.insertRow();
+
+      novaLinha.insertCell(0).textContent = loja;
+      novaLinha.insertCell(1).textContent = material;
+      novaLinha.insertCell(2).textContent = quantidade;
+      novaLinha.insertCell(3).textContent = data;
+
+      document.getElementById('material').value = '';
+      document.getElementById('quantidade').value = '';
+    }
+  </script>
 </body>
 </html>
