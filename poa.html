@@ -22,7 +22,7 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    select, input[type="text"], input[type="number"] {
+    select, input[type="number"] {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
@@ -58,8 +58,7 @@
 
     <label for="loja">Selecionar Loja:</label>
     <select id="loja">
-      <option>Brandshouse</option>
-      <option>Platinum</option>
+      <option>Brandshouse Platinum</option>
       <option>Ellus Barra Sul</option>
       <option>Ellus Iguatemi</option>
       <option>Ellus Praia de Belas</option>
@@ -71,8 +70,15 @@
       <option>VR Iguatemi</option>
     </select>
 
-    <label for="material">Material retirado:</label>
-    <input type="text" id="material" placeholder="Ex: Fita isolante">
+    <label for="material">Selecionar Material:</label>
+    <select id="material">
+      <option value="Fita isolante">Fita isolante</option>
+      <option value="Parafuso">Parafuso</option>
+      <option value="Lâmpada LED">Lâmpada LED</option>
+      <option value="Tomada 2P+T">Tomada 2P+T</option>
+      <option value="Fita dupla face">Fita dupla face</option>
+      <!-- Esta lista será editada futuramente via login de admin -->
+    </select>
 
     <label for="quantidade">Quantidade:</label>
     <input type="number" id="quantidade" placeholder="Ex: 2">
@@ -114,7 +120,6 @@
       novaLinha.insertCell(2).textContent = quantidade;
       novaLinha.insertCell(3).textContent = data;
 
-      document.getElementById('material').value = '';
       document.getElementById('quantidade').value = '';
     }
   </script>
