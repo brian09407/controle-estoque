@@ -3,125 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POA - Controle de Estoque</title>
+  <title>Retirada de Material - POA</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f2f2f2;
       margin: 0;
       padding: 20px;
     }
-    h2 {
-      text-align: center;
-    }
     .container {
-      max-width: 800px;
+      max-width: 600px;
       margin: 0 auto;
-      background-color: #ffffff;
+      background-color: #fff;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    select, input[type="number"] {
+    select, button {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin-top: 10px;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-    button {
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      background-color: #e9ecef;
+    h2 {
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Controle de Retirada - POA</h2>
-
-    <label for="loja">Selecionar Loja:</label>
+    <h2>Retirada de Material - POA</h2>
+    <label for="loja">Loja:</label>
     <select id="loja">
-      <option>Brandshouse Platinum</option>
-      <option>Ellus Barra Sul</option>
-      <option>Ellus Iguatemi</option>
-      <option>Ellus Praia de Belas</option>
-      <option>Richards Iguatemi</option>
-      <option>Richards Moinhos</option>
-      <option>Richards Barra Sul</option>
-      <option>Tommy Platinum</option>
-      <option>VR Barra Sul</option>
-      <option>VR Iguatemi</option>
+      <option value="Brandshouse Platinum">Brandshouse Platinum</option>
+      <option value="Ellus Barra Sul">Ellus Barra Sul</option>
+      <option value="Ellus Iguatemi">Ellus Iguatemi</option>
+      <option value="Ellus Praia de Belas">Ellus Praia de Belas</option>
+      <option value="Richards Iguatemi">Richards Iguatemi</option>
+      <option value="Richards Moinhos">Richards Moinhos</option>
+      <option value="Richards Barra Sul">Richards Barra Sul</option>
+      <option value="Tommy Platinum">Tommy Platinum</option>
+      <option value="VR Barra Sul">VR Barra Sul</option>
+      <option value="VR Iguatemi">VR Iguatemi</option>
     </select>
 
-    <label for="material">Selecionar Material:</label>
-    <select id="material">
-      <option value="Fita isolante">Fita isolante</option>
-      <option value="Parafuso">Parafuso</option>
-      <option value="Lâmpada LED">Lâmpada LED</option>
-      <option value="Tomada 2P+T">Tomada 2P+T</option>
-      <option value="Fita dupla face">Fita dupla face</option>
-      <!-- Esta lista será editada futuramente via login de admin -->
-    </select>
+    <label for="material">Material:</label>
+    <select id="material"></select>
 
-    <label for="quantidade">Quantidade:</label>
-    <input type="number" id="quantidade" placeholder="Ex: 2">
-
-    <button onclick="registrarRetirada()">Registrar Retirada</button>
-
-    <table id="tabela-retiradas">
-      <thead>
-        <tr>
-          <th>Loja</th>
-          <th>Material</th>
-          <th>Quantidade</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Registros vão aqui -->
-      </tbody>
-    </table>
+    <button onclick="darBaixa()">Dar baixa</button>
   </div>
 
   <script>
-    function registrarRetirada() {
-      const loja = document.getElementById('loja').value;
-      const material = document.getElementById('material').value;
-      const quantidade = document.getElementById('quantidade').value;
-      const data = new Date().toLocaleString();
-
-      if (!material || !quantidade) {
-        alert("Por favor, preencha todos os campos.");
-        return;
-      }
-
-      const tabela = document.getElementById('tabela-retiradas').getElementsByTagName('tbody')[0];
-      const novaLinha = tabela.insertRow();
-
-      novaLinha.insertCell(0).textContent = loja;
-      novaLinha.insertCell(1).textContent = material;
-      novaLinha.insertCell(2).textContent = quantidade;
-      novaLinha.insertCell(3).textContent = data;
-
-      document.getElementById('quantidade').value = '';
+    function carregarMateriais() {
+      const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
+      const select = document.getElementById("material");
+      select.innerHTML = "";
+      materiais.forEach((m, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${m.nome} (estoque: ${m.quantidade})`;
+        select.appendChild(option);
+      });
     }
+
+    function darBaixa() {
+      const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
+      const index = document.getElementById("material").value;
+      if (materiais[index].quantidade > 0) {
+        materiais[index].quantidade--;
+        localStorage.setItem("materiais", JSON.stringify(materiais));
+        alert("Baixa registrada com sucesso!");
+      } else {
+        alert("Estoque insuficiente!");
+      }
+      carregarMateriais();
+    }
+
+    window.onload = carregarMateriais;
   </script>
 </body>
 </html>
