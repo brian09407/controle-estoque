@@ -7,19 +7,20 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f0f0f0;
       margin: 0;
       padding: 20px;
     }
     .container {
       max-width: 700px;
       margin: 0 auto;
-      background-color: #fff;
+      background-color: #ffffff;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
     }
-    h2 {
+    h2, h3 {
       text-align: center;
     }
     select, input, button {
@@ -30,9 +31,23 @@
       border: 1px solid #ccc;
     }
     button {
-      background-color: #555;
+      background-color: #4CAF50;
       color: white;
       cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .top-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .alerta-baixo {
+      color: red;
+      font-weight: bold;
     }
     table {
       width: 100%;
@@ -45,13 +60,18 @@
       text-align: center;
     }
     th {
-      background-color: #555;
+      background-color: #4CAF50;
       color: white;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="top-buttons">
+      <button onclick="sair()">Sair</button>
+      <button onclick="exportarCSV()">Exportar Estoque</button>
+    </div>
+
     <h2>Retirada de Materiais - POA</h2>
 
     <select id="loja" onchange="carregarMateriais()">
@@ -100,10 +120,31 @@
       <tbody>
       </tbody>
     </table>
-
   </div>
 
   <script>
+    function sair() {
+      window.location.href = "index.html";
+    }
+
+    function exportarCSV() {
+      const estoque = getEstoque();
+      let csvContent = "data:text/csv;charset=utf-8,Loja,Material,Quantidade\n";
+
+      for (const loja in estoque) {
+        estoque[loja].forEach(m => {
+          csvContent += `${loja},${m.nome},${m.quantidade}\n`;
+        });
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "estoque.csv");
+      document.body.appendChild(link);
+      link.click();
+    }
+
     function getEstoque() {
       return JSON.parse(localStorage.getItem("estoque_por_loja")) || {};
     }
@@ -163,7 +204,6 @@
       }
 
       material.quantidade -= quantidadeRetirar;
-
       estoque[loja] = materiais;
       salvarEstoque(estoque);
 
@@ -191,7 +231,8 @@
 
       materiais.forEach(m => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${m.nome}</td><td>${m.quantidade}</td>`;
+        const alerta = m.quantidade <= 2 ? "alerta-baixo" : "";
+        tr.innerHTML = `<td>${m.nome}</td><td class="${alerta}">${m.quantidade}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -208,28 +249,21 @@
       });
     }
 
-    // Iniciar com materiais exemplo se não houver dados
     if (!localStorage.getItem("estoque_por_loja")) {
+      const exemplo = {};
       const lojas = [
-        "Brandshouse Platinum",
-        "Ellus Barra Sul",
-        "Ellus Iguatemi",
-        "Ellus Praia de Belas",
-        "Richards Iguatemi",
-        "Richards Moinhos",
-        "Richards Barra Sul",
-        "Tommy Platinum",
-        "VR Barra Sul",
-        "VR Iguatemi"
+        "Brandshouse Platinum", "Ellus Barra Sul", "Ellus Iguatemi", "Ellus Praia de Belas",
+        "Richards Iguatemi", "Richards Moinhos", "Richards Barra Sul", "Tommy Platinum",
+        "VR Barra Sul", "VR Iguatemi"
       ];
 
-      const exemplo = {};
       lojas.forEach(loja => {
         exemplo[loja] = [
-          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 10 },
-          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 8 }
+          { nome: "Extintor de incêndio 6kg", quantidade: 5 },
+          { nome: "Ar Condicionado Split 12000BTUs", quantidade: 3 }
         ];
       });
+
       salvarEstoque(exemplo);
     }
 
