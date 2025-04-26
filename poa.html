@@ -12,7 +12,7 @@
       padding: 20px;
     }
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
       background-color: #fff;
       padding: 20px;
@@ -34,24 +34,27 @@
       color: white;
       cursor: pointer;
     }
-    ul {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
-      padding-left: 0;
-      list-style: none;
     }
-    li {
-      background: #f1f1f1;
+    th, td {
+      border: 1px solid #ddd;
       padding: 10px;
-      margin-bottom: 5px;
-      border-radius: 5px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Retirada de Materiais - POA</h2>
-    
-    <select id="loja">
+
+    <select id="loja" onchange="carregarMateriais()">
       <option value="">Selecione a loja</option>
       <option>Brandshouse Platinum</option>
       <option>Ellus Barra Sul</option>
@@ -69,71 +72,110 @@
       <option value="">Selecione o material</option>
     </select>
 
-    <input type="number" id="quantidade" placeholder="Quantidade a retirar" min="1">
-
+    <input type="number" id="quantidade" placeholder="Quantidade para retirar" min="1">
     <button onclick="retirarMaterial()">Retirar Material</button>
 
-    <h3>Estoque Atual:</h3>
-    <ul id="estoqueAtual"></ul>
+    <table id="tabelaEstoque">
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th>Quantidade Disponível</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
   </div>
 
   <script>
+    function getEstoque() {
+      return JSON.parse(localStorage.getItem("estoque_por_loja")) || {};
+    }
+
+    function salvarEstoque(estoque) {
+      localStorage.setItem("estoque_por_loja", JSON.stringify(estoque));
+    }
+
     function carregarMateriais() {
-      const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
-      const materialSelect = document.getElementById("material");
-      materialSelect.innerHTML = '<option value="">Selecione o material</option>';
+      const loja = document.getElementById("loja").value;
+      const estoque = getEstoque();
+      const materiais = estoque[loja] || [];
+
+      const selectMaterial = document.getElementById("material");
+      selectMaterial.innerHTML = '<option value="">Selecione o material</option>';
+      
       materiais.forEach(m => {
         const option = document.createElement("option");
         option.value = m.nome;
-        option.textContent = `${m.nome} (estoque: ${m.quantidade})`;
-        materialSelect.appendChild(option);
+        option.textContent = m.nome;
+        selectMaterial.appendChild(option);
       });
-    }
 
-    function atualizarEstoque() {
-      const lista = document.getElementById("estoqueAtual");
-      lista.innerHTML = '';
-      const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
-      materiais.forEach(m => {
-        const li = document.createElement("li");
-        li.textContent = `${m.nome}: ${m.quantidade}`;
-        lista.appendChild(li);
-      });
+      atualizarTabela();
     }
 
     function retirarMaterial() {
       const loja = document.getElementById("loja").value;
-      const material = document.getElementById("material").value;
-      const quantidade = parseInt(document.getElementById("quantidade").value);
+      const materialSelecionado = document.getElementById("material").value;
+      const quantidadeRetirar = parseInt(document.getElementById("quantidade").value);
 
-      if (!loja || !material || !quantidade || quantidade <= 0) {
-        alert("Preencha todos os campos corretamente.");
+      if (!loja || !materialSelecionado || isNaN(quantidadeRetirar) || quantidadeRetirar <= 0) {
+        alert("Preencha todos os campos corretamente!");
         return;
       }
 
-      let materiais = JSON.parse(localStorage.getItem("materiais")) || [];
-      const index = materiais.findIndex(m => m.nome === material);
+      const estoque = getEstoque();
+      const materiais = estoque[loja] || [];
 
-      if (index !== -1) {
-        if (materiais[index].quantidade >= quantidade) {
-          materiais[index].quantidade -= quantidade;
-          localStorage.setItem("materiais", JSON.stringify(materiais));
-          alert(`Retirada realizada com sucesso na loja ${loja}!`);
-          carregarMateriais();
-          atualizarEstoque();
-        } else {
-          alert("Estoque insuficiente para a retirada.");
-        }
-      } else {
-        alert("Material não encontrado.");
+      const material = materiais.find(m => m.nome === materialSelecionado);
+      if (!material) {
+        alert("Material não encontrado para esta loja!");
+        return;
       }
 
-      document.getElementById("quantidade").value = '';
+      if (material.quantidade < quantidadeRetirar) {
+        alert("Quantidade indisponível em estoque!");
+        return;
+      }
+
+      material.quantidade -= quantidadeRetirar;
+
+      estoque[loja] = materiais;
+      salvarEstoque(estoque);
+
+      carregarMateriais();
+      document.getElementById("quantidade").value = "";
     }
 
-    window.onload = function() {
-      carregarMateriais();
-      atualizarEstoque();
+    function atualizarTabela() {
+      const loja = document.getElementById("loja").value;
+      const estoque = getEstoque();
+      const materiais = estoque[loja] || [];
+
+      const tbody = document.getElementById("tabelaEstoque").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      materiais.forEach(m => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${m.nome}</td><td>${m.quantidade}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Só para iniciar exemplo com alguns materiais (caso não tenha nada ainda):
+    if (!localStorage.getItem("estoque_por_loja")) {
+      const exemplo = {
+        "Brandshouse Platinum": [
+          { nome: "Ar Condicionado", quantidade: 5 },
+          { nome: "Extintor de Incêndio", quantidade: 2 }
+        ],
+        "Ellus Barra Sul": [
+          { nome: "Filtro de Água", quantidade: 3 },
+          { nome: "Cabo HDMI", quantidade: 7 }
+        ]
+      };
+      salvarEstoque(exemplo);
     }
   </script>
 </body>
