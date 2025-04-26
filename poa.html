@@ -75,11 +75,26 @@
     <input type="number" id="quantidade" placeholder="Quantidade para retirar" min="1">
     <button onclick="retirarMaterial()">Retirar Material</button>
 
+    <h3>Estoque Atual</h3>
     <table id="tabelaEstoque">
       <thead>
         <tr>
           <th>Material</th>
           <th>Quantidade Disponível</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <h3>Histórico de Retiradas</h3>
+    <table id="tabelaHistorico">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Loja</th>
+          <th>Material</th>
+          <th>Quantidade</th>
         </tr>
       </thead>
       <tbody>
@@ -95,6 +110,14 @@
 
     function salvarEstoque(estoque) {
       localStorage.setItem("estoque_por_loja", JSON.stringify(estoque));
+    }
+
+    function getHistorico() {
+      return JSON.parse(localStorage.getItem("historico_retiradas")) || [];
+    }
+
+    function salvarHistorico(historico) {
+      localStorage.setItem("historico_retiradas", JSON.stringify(historico));
     }
 
     function carregarMateriais() {
@@ -144,7 +167,17 @@
       estoque[loja] = materiais;
       salvarEstoque(estoque);
 
+      const historico = getHistorico();
+      historico.push({
+        data: new Date().toLocaleString(),
+        loja: loja,
+        material: materialSelecionado,
+        quantidade: quantidadeRetirar
+      });
+      salvarHistorico(historico);
+
       carregarMateriais();
+      atualizarHistorico();
       document.getElementById("quantidade").value = "";
     }
 
@@ -163,19 +196,35 @@
       });
     }
 
-    // Só para iniciar exemplo com alguns materiais (caso não tenha nada ainda):
+    function atualizarHistorico() {
+      const historico = getHistorico();
+      const tbody = document.getElementById("tabelaHistorico").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      historico.slice().reverse().forEach(h => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${h.data}</td><td>${h.loja}</td><td>${h.material}</td><td>${h.quantidade}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Iniciar com materiais exemplo se não houver dados
     if (!localStorage.getItem("estoque_por_loja")) {
       const exemplo = {
         "Brandshouse Platinum": [
-          { nome: "Ar Condicionado", quantidade: 5 },
-          { nome: "Extintor de Incêndio", quantidade: 2 }
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 10 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 8 }
         ],
         "Ellus Barra Sul": [
-          { nome: "Filtro de Água", quantidade: 3 },
-          { nome: "Cabo HDMI", quantidade: 7 }
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 5 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 4 }
         ]
       };
       salvarEstoque(exemplo);
+    }
+
+    window.onload = function() {
+      atualizarHistorico();
     }
   </script>
 </body>
