@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retirada de Material - POA</title>
+  <title>Controle de Estoque - POA</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f2f2f2;
+      background-color: #f5f5f5;
       margin: 0;
       padding: 20px;
     }
@@ -19,68 +19,122 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    select, button {
+    h2 {
+      text-align: center;
+    }
+    select, input, button {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
+      margin: 10px 0;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-    h2 {
-      text-align: center;
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    ul {
+      margin-top: 20px;
+      padding-left: 0;
+      list-style: none;
+    }
+    li {
+      background: #f1f1f1;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Retirada de Material - POA</h2>
-    <label for="loja">Loja:</label>
+    <h2>Retirada de Materiais - POA</h2>
+    
     <select id="loja">
-      <option value="Brandshouse Platinum">Brandshouse Platinum</option>
-      <option value="Ellus Barra Sul">Ellus Barra Sul</option>
-      <option value="Ellus Iguatemi">Ellus Iguatemi</option>
-      <option value="Ellus Praia de Belas">Ellus Praia de Belas</option>
-      <option value="Richards Iguatemi">Richards Iguatemi</option>
-      <option value="Richards Moinhos">Richards Moinhos</option>
-      <option value="Richards Barra Sul">Richards Barra Sul</option>
-      <option value="Tommy Platinum">Tommy Platinum</option>
-      <option value="VR Barra Sul">VR Barra Sul</option>
-      <option value="VR Iguatemi">VR Iguatemi</option>
+      <option value="">Selecione a loja</option>
+      <option>Brandshouse Platinum</option>
+      <option>Ellus Barra Sul</option>
+      <option>Ellus Iguatemi</option>
+      <option>Ellus Praia de Belas</option>
+      <option>Richards Iguatemi</option>
+      <option>Richards Moinhos</option>
+      <option>Richards Barra Sul</option>
+      <option>Tommy Platinum</option>
+      <option>VR Barra Sul</option>
+      <option>VR Iguatemi</option>
     </select>
 
-    <label for="material">Material:</label>
-    <select id="material"></select>
+    <select id="material">
+      <option value="">Selecione o material</option>
+    </select>
 
-    <button onclick="darBaixa()">Dar baixa</button>
+    <input type="number" id="quantidade" placeholder="Quantidade a retirar" min="1">
+
+    <button onclick="retirarMaterial()">Retirar Material</button>
+
+    <h3>Estoque Atual:</h3>
+    <ul id="estoqueAtual"></ul>
   </div>
 
   <script>
     function carregarMateriais() {
       const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
-      const select = document.getElementById("material");
-      select.innerHTML = "";
-      materiais.forEach((m, i) => {
+      const materialSelect = document.getElementById("material");
+      materialSelect.innerHTML = '<option value="">Selecione o material</option>';
+      materiais.forEach(m => {
         const option = document.createElement("option");
-        option.value = i;
+        option.value = m.nome;
         option.textContent = `${m.nome} (estoque: ${m.quantidade})`;
-        select.appendChild(option);
+        materialSelect.appendChild(option);
       });
     }
 
-    function darBaixa() {
+    function atualizarEstoque() {
+      const lista = document.getElementById("estoqueAtual");
+      lista.innerHTML = '';
       const materiais = JSON.parse(localStorage.getItem("materiais")) || [];
-      const index = document.getElementById("material").value;
-      if (materiais[index].quantidade > 0) {
-        materiais[index].quantidade--;
-        localStorage.setItem("materiais", JSON.stringify(materiais));
-        alert("Baixa registrada com sucesso!");
-      } else {
-        alert("Estoque insuficiente!");
-      }
-      carregarMateriais();
+      materiais.forEach(m => {
+        const li = document.createElement("li");
+        li.textContent = `${m.nome}: ${m.quantidade}`;
+        lista.appendChild(li);
+      });
     }
 
-    window.onload = carregarMateriais;
+    function retirarMaterial() {
+      const loja = document.getElementById("loja").value;
+      const material = document.getElementById("material").value;
+      const quantidade = parseInt(document.getElementById("quantidade").value);
+
+      if (!loja || !material || !quantidade || quantidade <= 0) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+      }
+
+      let materiais = JSON.parse(localStorage.getItem("materiais")) || [];
+      const index = materiais.findIndex(m => m.nome === material);
+
+      if (index !== -1) {
+        if (materiais[index].quantidade >= quantidade) {
+          materiais[index].quantidade -= quantidade;
+          localStorage.setItem("materiais", JSON.stringify(materiais));
+          alert(`Retirada realizada com sucesso na loja ${loja}!`);
+          carregarMateriais();
+          atualizarEstoque();
+        } else {
+          alert("Estoque insuficiente para a retirada.");
+        }
+      } else {
+        alert("Material não encontrado.");
+      }
+
+      document.getElementById("quantidade").value = '';
+    }
+
+    window.onload = function() {
+      carregarMateriais();
+      atualizarEstoque();
+    }
   </script>
 </body>
 </html>
