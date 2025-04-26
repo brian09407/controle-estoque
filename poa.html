@@ -30,7 +30,7 @@
       border: 1px solid #ccc;
     }
     button {
-      background-color: #007bff;
+      background-color: #5c6bc0; /* tom moderno lilás-acinzentado */
       color: white;
       cursor: pointer;
     }
@@ -45,7 +45,7 @@
       text-align: center;
     }
     th {
-      background-color: #007bff;
+      background-color: #5c6bc0;
       color: white;
     }
   </style>
@@ -208,7 +208,7 @@
       });
     }
 
-    // Iniciar com materiais exemplo se não houver dados
+    // Iniciar com materiais exemplo para TODAS as lojas se não houver dados
     if (!localStorage.getItem("estoque_por_loja")) {
       const exemplo = {
         "Brandshouse Platinum": [
@@ -216,8 +216,40 @@
           { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 8 }
         ],
         "Ellus Barra Sul": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 6 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 5 }
+        ],
+        "Ellus Iguatemi": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 7 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 6 }
+        ],
+        "Ellus Praia de Belas": [
           { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 5 },
           { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 4 }
+        ],
+        "Richards Iguatemi": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 8 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 7 }
+        ],
+        "Richards Moinhos": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 6 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 5 }
+        ],
+        "Richards Barra Sul": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 5 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 4 }
+        ],
+        "Tommy Platinum": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 7 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 6 }
+        ],
+        "VR Barra Sul": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 6 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 5 }
+        ],
+        "VR Iguatemi": [
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 8 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 7 }
         ]
       };
       salvarEstoque(exemplo);
