@@ -7,43 +7,44 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f0f0;
+      background-color: #f5f5f5;
       margin: 0;
       padding: 20px;
     }
     .container {
-      max-width: 700px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
     h2, h3 {
       text-align: center;
+      margin-bottom: 20px;
     }
     select, input, button {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
-      border-radius: 5px;
+      border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 16px;
     }
     button {
-      background-color: #4CAF50;
+      background-color: #007BFF;
       color: white;
-      cursor: pointer;
       font-weight: bold;
+      cursor: pointer;
       transition: background-color 0.3s;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #0056b3;
     }
     .top-buttons {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     .alerta-baixo {
       color: red;
@@ -56,23 +57,24 @@
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
     }
     th {
-      background-color: #4CAF50;
+      background-color: #007BFF;
       color: white;
     }
   </style>
 </head>
 <body>
+
   <div class="container">
     <div class="top-buttons">
       <button onclick="sair()">Sair</button>
       <button onclick="exportarCSV()">Exportar Estoque</button>
     </div>
 
-    <h2>Retirada de Materiais - POA</h2>
+    <h2>Controle de Retirada - POA</h2>
 
     <select id="loja" onchange="carregarMateriais()">
       <option value="">Selecione a loja</option>
@@ -103,8 +105,7 @@
           <th>Quantidade Disponível</th>
         </tr>
       </thead>
-      <tbody>
-      </tbody>
+      <tbody></tbody>
     </table>
 
     <h3>Histórico de Retiradas</h3>
@@ -117,31 +118,30 @@
           <th>Quantidade</th>
         </tr>
       </thead>
-      <tbody>
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
 
   <script>
+    const API_SHEETS = 'https://script.google.com/macros/s/AKfycby5qjK7bnWzCGpdU1isAwYLn5QNsQgrBOBoAoYjtw1yXjZ7QnFS70Mz3qDdcOE8fGxp/exec';
+
     function sair() {
       window.location.href = "index.html";
     }
 
     function exportarCSV() {
       const estoque = getEstoque();
-      let csvContent = "data:text/csv;charset=utf-8,Loja,Material,Quantidade\n";
+      let csv = "Loja,Material,Quantidade\n";
 
       for (const loja in estoque) {
         estoque[loja].forEach(m => {
-          csvContent += `${loja},${m.nome},${m.quantidade}\n`;
+          csv += `${loja},${m.nome},${m.quantidade}\n`;
         });
       }
 
-      const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "estoque.csv");
-      document.body.appendChild(link);
+      link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      link.download = "estoque.csv";
       link.click();
     }
 
@@ -166,14 +166,14 @@
       const estoque = getEstoque();
       const materiais = estoque[loja] || [];
 
-      const selectMaterial = document.getElementById("material");
-      selectMaterial.innerHTML = '<option value="">Selecione o material</option>';
+      const select = document.getElementById("material");
+      select.innerHTML = '<option value="">Selecione o material</option>';
 
       materiais.forEach(m => {
         const option = document.createElement("option");
         option.value = m.nome;
         option.textContent = m.nome;
-        selectMaterial.appendChild(option);
+        select.appendChild(option);
       });
 
       atualizarTabela();
@@ -191,15 +191,10 @@
 
       const estoque = getEstoque();
       const materiais = estoque[loja] || [];
-
       const material = materiais.find(m => m.nome === materialSelecionado);
-      if (!material) {
-        alert("Material não encontrado para esta loja!");
-        return;
-      }
 
-      if (material.quantidade < quantidadeRetirar) {
-        alert("Quantidade indisponível em estoque!");
+      if (!material || material.quantidade < quantidadeRetirar) {
+        alert("Quantidade indisponível!");
         return;
       }
 
@@ -207,14 +202,25 @@
       estoque[loja] = materiais;
       salvarEstoque(estoque);
 
-      const historico = getHistorico();
-      historico.push({
+      const retirada = {
         data: new Date().toLocaleString(),
-        loja: loja,
+        loja,
         material: materialSelecionado,
         quantidade: quantidadeRetirar
-      });
+      };
+
+      const historico = getHistorico();
+      historico.push(retirada);
       salvarHistorico(historico);
+
+      fetch(API_SHEETS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(retirada)
+      })
+      .then(res => res.text())
+      .then(result => console.log("Google Sheets:", result))
+      .catch(error => console.error("Erro ao enviar:", error));
 
       carregarMateriais();
       atualizarHistorico();
@@ -226,48 +232,53 @@
       const estoque = getEstoque();
       const materiais = estoque[loja] || [];
 
-      const tbody = document.getElementById("tabelaEstoque").querySelector("tbody");
+      const tbody = document.querySelector("#tabelaEstoque tbody");
       tbody.innerHTML = "";
 
       materiais.forEach(m => {
         const tr = document.createElement("tr");
-        const alerta = m.quantidade <= 2 ? "alerta-baixo" : "";
-        tr.innerHTML = `<td>${m.nome}</td><td class="${alerta}">${m.quantidade}</td>`;
+        tr.innerHTML = `
+          <td>${m.nome}</td>
+          <td class="${m.quantidade <= 2 ? 'alerta-baixo' : ''}">${m.quantidade}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
     function atualizarHistorico() {
       const historico = getHistorico();
-      const tbody = document.getElementById("tabelaHistorico").querySelector("tbody");
+      const tbody = document.querySelector("#tabelaHistorico tbody");
       tbody.innerHTML = "";
 
       historico.slice().reverse().forEach(h => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${h.data}</td><td>${h.loja}</td><td>${h.material}</td><td>${h.quantidade}</td>`;
+        tr.innerHTML = `
+          <td>${h.data}</td>
+          <td>${h.loja}</td>
+          <td>${h.material}</td>
+          <td>${h.quantidade}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
+    // Inicializa se o estoque não existir
     if (!localStorage.getItem("estoque_por_loja")) {
       const exemplo = {};
-      const lojas = [
+      [
         "Brandshouse Platinum", "Ellus Barra Sul", "Ellus Iguatemi", "Ellus Praia de Belas",
-        "Richards Iguatemi", "Richards Moinhos", "Richards Barra Sul", "Tommy Platinum",
-        "VR Barra Sul", "VR Iguatemi"
-      ];
-
-      lojas.forEach(loja => {
+        "Richards Iguatemi", "Richards Moinhos", "Richards Barra Sul",
+        "Tommy Platinum", "VR Barra Sul", "VR Iguatemi"
+      ].forEach(loja => {
         exemplo[loja] = [
-          { nome: "Extintor de incêndio 6kg", quantidade: 5 },
-          { nome: "Ar Condicionado Split 12000BTUs", quantidade: 3 }
+          { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 10 },
+          { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 8 }
         ];
       });
-
       salvarEstoque(exemplo);
     }
 
-    window.onload = function() {
+    window.onload = () => {
       atualizarHistorico();
     }
   </script>
