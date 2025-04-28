@@ -2,198 +2,125 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Estoque - POA</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      margin: 20px;
     }
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
+    h1, h2 {
+      color: #333;
     }
-    h2, h3 {
-      text-align: center;
-    }
-    select, input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #333333;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #555555;
-    }
-    .top-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .alerta-baixo {
-      color: red;
-      font-weight: bold;
+    label, select, input, button {
+      margin: 5px 0;
+      display: block;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
     }
     th {
-      background-color: #333333;
-      color: white;
+      background-color: #f4f4f4;
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="top-buttons">
-      <button onclick="sair()">Sair</button>
-      <button onclick="exportarCSV()">Exportar Estoque</button>
-    </div>
 
-    <h2>Retirada de Materiais - POA</h2>
+  <h1>Controle de Estoque - Porto Alegre</h1>
 
+  <div>
+    <label for="loja">Selecione a Loja:</label>
     <select id="loja" onchange="carregarMateriais()">
-      <option value="">Selecione a loja</option>
-      <option>Brandshouse Platinum</option>
-      <option>Ellus Barra Sul</option>
-      <option>Ellus Iguatemi</option>
-      <option>Ellus Praia de Belas</option>
-      <option>Richards Iguatemi</option>
-      <option>Richards Moinhos</option>
-      <option>Richards Barra Sul</option>
-      <option>Tommy Platinum</option>
-      <option>VR Barra Sul</option>
-      <option>VR Iguatemi</option>
+      <option value="">-- Escolha a loja --</option>
+      <option value="VR Barra Sul">VR Barra Sul</option>
+      <option value="Tommy Platinum">Tommy Platinum</option>
+      <option value="VR Iguatemi POA">VR Iguatemi POA</option>
+      <option value="VR Praia de Belas">VR Praia de Belas</option>
+      <option value="VR Canoas">VR Canoas</option>
     </select>
 
-    <select id="material">
-      <option value="">Selecione o material</option>
-    </select>
+    <label for="material">Selecione o Material:</label>
+    <select id="material"></select>
 
-    <input type="number" id="quantidade" placeholder="Quantidade para retirar" min="1">
-    <button onclick="retirarMaterial()">Retirar Material</button>
+    <label for="quantidade">Quantidade:</label>
+    <input type="number" id="quantidade" min="1">
 
-    <h3>Estoque Atual</h3>
-    <table id="tabelaEstoque">
-      <thead>
-        <tr>
-          <th>Material</th>
-          <th>Quantidade Disponível</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-
-    <h3>Histórico de Retiradas</h3>
-    <table id="tabelaHistorico">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Loja</th>
-          <th>Material</th>
-          <th>Quantidade</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <button onclick="retirarMaterial()">Retirar</button>
   </div>
 
+  <h2>Histórico de Retiradas</h2>
+  <div id="historico"></div>
+
   <script>
-    const API_SHEETS = 'https://script.google.com/macros/s/AKfycby5qjK7bnWzCGpdU1isAwYLn5QNsQgrBOBoAoYjtw1yXjZ7QnFS70Mz3qDdcOE8fGxp/exec';
-
-    const lojas = [
-      "Brandshouse Platinum", "Ellus Barra Sul", "Ellus Iguatemi", "Ellus Praia de Belas",
-      "Richards Iguatemi", "Richards Moinhos", "Richards Barra Sul",
-      "Tommy Platinum", "VR Barra Sul", "VR Iguatemi"
-    ];
-
-    const materiaisIniciais = [
-      { nome: "Lâmpada AR111 - 3000k Ledvance", quantidade: 10 },
-      { nome: "Lâmpada PAR30 - 28w - 3000k Ledvance", quantidade: 8 },
-      { nome: "Fita de LED 5m - 3000k", quantidade: 5 },
-      { nome: "Driver 12V 60W", quantidade: 6 },
-      { nome: "Placa de LED 18w Embutir", quantidade: 12 }
-    ];
-
-    function sair() {
-      window.location.href = "index.html";
-    }
-
+    // Funções de armazenamento local
     function getEstoque() {
-      return JSON.parse(localStorage.getItem("estoque_por_loja")) || {};
+      return JSON.parse(localStorage.getItem('estoque')) || {};
     }
 
     function salvarEstoque(estoque) {
-      localStorage.setItem("estoque_por_loja", JSON.stringify(estoque));
+      localStorage.setItem('estoque', JSON.stringify(estoque));
     }
 
     function getHistorico() {
-      return JSON.parse(localStorage.getItem("historico_retiradas")) || [];
+      return JSON.parse(localStorage.getItem('historico')) || [];
     }
 
     function salvarHistorico(historico) {
-      localStorage.setItem("historico_retiradas", JSON.stringify(historico));
+      localStorage.setItem('historico', JSON.stringify(historico));
     }
 
-    function inicializarEstoque() {
-      let estoque = getEstoque();
-      let atualizado = false;
-
-      lojas.forEach(loja => {
-        if (!estoque[loja]) {
-          estoque[loja] = JSON.parse(JSON.stringify(materiaisIniciais));
-          atualizado = true;
-        }
-      });
-
-      if (atualizado) {
-        salvarEstoque(estoque);
-      }
-    }
-
+    // Carregar materiais da loja selecionada
     function carregarMateriais() {
       const loja = document.getElementById("loja").value;
+      const materialSelect = document.getElementById("material");
+      materialSelect.innerHTML = "";
+
+      if (!loja) return;
+
       const estoque = getEstoque();
       const materiais = estoque[loja] || [];
 
-      const select = document.getElementById("material");
-      select.innerHTML = '<option value="">Selecione o material</option>';
-
-      materiais.forEach(m => {
+      materiais.forEach(material => {
         const option = document.createElement("option");
-        option.value = m.nome;
-        option.textContent = m.nome;
-        select.appendChild(option);
+        option.value = material.nome;
+        option.textContent = `${material.nome} (${material.quantidade} disponíveis)`;
+        materialSelect.appendChild(option);
       });
-
-      atualizarTabela();
     }
 
+    // Atualizar tabela de histórico
+    function atualizarHistorico() {
+      const historico = getHistorico();
+      const historicoDiv = document.getElementById("historico");
+
+      if (historico.length === 0) {
+        historicoDiv.innerHTML = "<p>Nenhuma retirada registrada.</p>";
+        return;
+      }
+
+      let html = "<table><tr><th>Data</th><th>Loja</th><th>Material</th><th>Quantidade</th></tr>";
+      historico.forEach(item => {
+        html += `<tr>
+          <td>${item.data}</td>
+          <td>${item.loja}</td>
+          <td>${item.material}</td>
+          <td>${item.quantidade}</td>
+        </tr>`;
+      });
+      html += "</table>";
+
+      historicoDiv.innerHTML = html;
+    }
+
+    // Função de retirar material
     function retirarMaterial() {
       const loja = document.getElementById("loja").value;
       const materialSelecionado = document.getElementById("material").value;
@@ -206,8 +133,8 @@
 
       const estoque = getEstoque();
       const materiais = estoque[loja] || [];
-      const material = materiais.find(m => m.nome === materialSelecionado);
 
+      const material = materiais.find(m => m.nome === materialSelecionado);
       if (!material) {
         alert("Material não encontrado para esta loja!");
         return;
@@ -219,81 +146,41 @@
       }
 
       material.quantidade -= quantidadeRetirar;
+      estoque[loja] = materiais;
       salvarEstoque(estoque);
 
       const historico = getHistorico();
-      const retirada = {
+      historico.push({
         data: new Date().toLocaleString(),
         loja: loja,
         material: materialSelecionado,
         quantidade: quantidadeRetirar
-      };
-      historico.push(retirada);
-      salvarHistorico(historico);
-
-      // Enviar para o Google Sheets
-      fetch(API_SHEETS, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(retirada)
       });
+      salvarHistorico(historico);
 
       carregarMateriais();
       atualizarHistorico();
       document.getElementById("quantidade").value = "";
-    }
 
-    function atualizarTabela() {
-      const loja = document.getElementById("loja").value;
-      const estoque = getEstoque();
-      const materiais = estoque[loja] || [];
-
-      const tbody = document.getElementById("tabelaEstoque").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      materiais.forEach(m => {
-        const tr = document.createElement("tr");
-        const alerta = m.quantidade <= 2 ? "alerta-baixo" : "";
-        tr.innerHTML = `<td>${m.nome}</td><td class="${alerta}">${m.quantidade}</td>`;
-        tbody.appendChild(tr);
+      // Enviar para o Google Sheets
+      fetch('https://script.google.com/macros/s/AKfycbyCYrUzrov3zfsTyhI8iFw27VCkPmB_vlh2mhn_9w2iD8Xgrr25LuB5QF5qcwOxaNA2GA/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          loja: loja,
+          material: materialSelecionado,
+          quantidade: quantidadeRetirar
+        })
       });
     }
 
-    function atualizarHistorico() {
-      const historico = getHistorico();
-      const tbody = document.getElementById("tabelaHistorico").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      historico.slice().reverse().forEach(h => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${h.data}</td><td>${h.loja}</td><td>${h.material}</td><td>${h.quantidade}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function exportarCSV() {
-      const estoque = getEstoque();
-      let csvContent = "data:text/csv;charset=utf-8,Loja,Material,Quantidade\n";
-
-      for (const loja in estoque) {
-        estoque[loja].forEach(m => {
-          csvContent += `${loja},${m.nome},${m.quantidade}\n`;
-        });
-      }
-
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "estoque.csv");
-      document.body.appendChild(link);
-      link.click();
-    }
-
-    window.onload = function() {
-      inicializarEstoque();
-      atualizarHistorico();
-    }
+    // Inicializar
+    atualizarHistorico();
+    carregarMateriais();
   </script>
+
 </body>
 </html>
