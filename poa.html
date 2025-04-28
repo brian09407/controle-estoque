@@ -1,186 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Controle de Estoque - POA</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    label, select, input, button {
-      margin: 5px 0;
-      display: block;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque - POA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .loja-section {
+            margin-bottom: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background: #eee;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>Controle de Estoque - Porto Alegre</h1>
+    <h1>Controle de Estoque - POA</h1>
+    <div id="estoque"></div>
 
-  <div>
-    <label for="loja">Selecione a Loja:</label>
-    <select id="loja" onchange="carregarMateriais()">
-      <option value="">-- Escolha a loja --</option>
-      <option value="VR Barra Sul">VR Barra Sul</option>
-      <option value="Tommy Platinum">Tommy Platinum</option>
-      <option value="VR Iguatemi POA">VR Iguatemi POA</option>
-      <option value="VR Praia de Belas">VR Praia de Belas</option>
-      <option value="VR Canoas">VR Canoas</option>
-    </select>
+    <script>
+        const url = "https://script.google.com/macros/s/AKfycbyCYrUzrov3zfsTyhI8iFw27VCkPmB_vlh2mhn_9w2iD8Xgrr25LuB5QF5qcwOxaNA2GA/exec";
 
-    <label for="material">Selecione o Material:</label>
-    <select id="material"></select>
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const estoqueDiv = document.getElementById('estoque');
+                
+                // Agrupar os dados por loja
+                const lojas = {};
+                data.forEach(item => {
+                    const loja = item.Loja || 'Sem Loja';
+                    if (!lojas[loja]) {
+                        lojas[loja] = [];
+                    }
+                    lojas[loja].push(item);
+                });
 
-    <label for="quantidade">Quantidade:</label>
-    <input type="number" id="quantidade" min="1">
+                // Criar seção para cada loja
+                for (const loja in lojas) {
+                    const section = document.createElement('div');
+                    section.className = 'loja-section';
 
-    <button onclick="retirarMaterial()">Retirar</button>
-  </div>
+                    const title = document.createElement('h2');
+                    title.textContent = loja;
+                    section.appendChild(title);
 
-  <h2>Histórico de Retiradas</h2>
-  <div id="historico"></div>
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const tbody = document.createElement('tbody');
 
-  <script>
-    // Funções de armazenamento local
-    function getEstoque() {
-      return JSON.parse(localStorage.getItem('estoque')) || {};
-    }
+                    // Cabeçalho da tabela
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Data</th>
+                            <th>Material</th>
+                            <th>Quantidade</th>
+                            <th>Responsável</th>
+                        </tr>
+                    `;
 
-    function salvarEstoque(estoque) {
-      localStorage.setItem('estoque', JSON.stringify(estoque));
-    }
+                    // Dados da tabela
+                    lojas[loja].forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.Data}</td>
+                            <td>${item.Material}</td>
+                            <td>${item.Quantidade}</td>
+                            <td>${item.Responsavel}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
 
-    function getHistorico() {
-      return JSON.parse(localStorage.getItem('historico')) || [];
-    }
-
-    function salvarHistorico(historico) {
-      localStorage.setItem('historico', JSON.stringify(historico));
-    }
-
-    // Carregar materiais da loja selecionada
-    function carregarMateriais() {
-      const loja = document.getElementById("loja").value;
-      const materialSelect = document.getElementById("material");
-      materialSelect.innerHTML = "";
-
-      if (!loja) return;
-
-      const estoque = getEstoque();
-      const materiais = estoque[loja] || [];
-
-      materiais.forEach(material => {
-        const option = document.createElement("option");
-        option.value = material.nome;
-        option.textContent = `${material.nome} (${material.quantidade} disponíveis)`;
-        materialSelect.appendChild(option);
-      });
-    }
-
-    // Atualizar tabela de histórico
-    function atualizarHistorico() {
-      const historico = getHistorico();
-      const historicoDiv = document.getElementById("historico");
-
-      if (historico.length === 0) {
-        historicoDiv.innerHTML = "<p>Nenhuma retirada registrada.</p>";
-        return;
-      }
-
-      let html = "<table><tr><th>Data</th><th>Loja</th><th>Material</th><th>Quantidade</th></tr>";
-      historico.forEach(item => {
-        html += `<tr>
-          <td>${item.data}</td>
-          <td>${item.loja}</td>
-          <td>${item.material}</td>
-          <td>${item.quantidade}</td>
-        </tr>`;
-      });
-      html += "</table>";
-
-      historicoDiv.innerHTML = html;
-    }
-
-    // Função de retirar material
-    function retirarMaterial() {
-      const loja = document.getElementById("loja").value;
-      const materialSelecionado = document.getElementById("material").value;
-      const quantidadeRetirar = parseInt(document.getElementById("quantidade").value);
-
-      if (!loja || !materialSelecionado || isNaN(quantidadeRetirar) || quantidadeRetirar <= 0) {
-        alert("Preencha todos os campos corretamente!");
-        return;
-      }
-
-      const estoque = getEstoque();
-      const materiais = estoque[loja] || [];
-
-      const material = materiais.find(m => m.nome === materialSelecionado);
-      if (!material) {
-        alert("Material não encontrado para esta loja!");
-        return;
-      }
-
-      if (material.quantidade < quantidadeRetirar) {
-        alert("Quantidade indisponível em estoque!");
-        return;
-      }
-
-      material.quantidade -= quantidadeRetirar;
-      estoque[loja] = materiais;
-      salvarEstoque(estoque);
-
-      const historico = getHistorico();
-      historico.push({
-        data: new Date().toLocaleString(),
-        loja: loja,
-        material: materialSelecionado,
-        quantidade: quantidadeRetirar
-      });
-      salvarHistorico(historico);
-
-      carregarMateriais();
-      atualizarHistorico();
-      document.getElementById("quantidade").value = "";
-
-      // Enviar para o Google Sheets
-      fetch('https://script.google.com/macros/s/AKfycbyCYrUzrov3zfsTyhI8iFw27VCkPmB_vlh2mhn_9w2iD8Xgrr25LuB5QF5qcwOxaNA2GA/exec', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          loja: loja,
-          material: materialSelecionado,
-          quantidade: quantidadeRetirar
-        })
-      });
-    }
-
-    // Inicializar
-    atualizarHistorico();
-    carregarMateriais();
-  </script>
+                    table.appendChild(thead);
+                    table.appendChild(tbody);
+                    section.appendChild(table);
+                    estoqueDiv.appendChild(section);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados:', error);
+            });
+    </script>
 
 </body>
 </html>
