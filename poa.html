@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Estoque - POA</title>
   <style>
     body {
@@ -14,10 +14,36 @@
       flex-direction: column;
       align-items: center;
     }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 20px;
+      box-sizing: border-box;
+      background-color: transparent;
+    }
+
+    .btn-sair {
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 16px;
+      /* Removido width para deixá-lo compacto */
+    }
+
+    .btn-sair:hover {
+      background-color: #c9302c;
+    }
+
     h1 {
-      margin-top: 30px;
+      margin-top: 0;
       color: #333;
     }
+
     .container {
       background-color: #ffffff;
       border-radius: 12px;
@@ -27,7 +53,9 @@
       width: 100%;
       max-width: 500px;
     }
-    select, input[type="number"] {
+
+    select,
+    input[type="number"] {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
@@ -35,26 +63,32 @@
       border-radius: 6px;
       font-size: 16px;
     }
-    button {
+
+    button:not(.btn-sair) {
       width: 100%;
       padding: 12px;
-      background-color: #4CAF50;
+      background-color: #4caf50;
       color: white;
       border: none;
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
     }
-    button:hover {
+
+    button:not(.btn-sair):hover {
       background-color: #45a049;
     }
+
     .resultado {
       margin-top: 20px;
       padding: 12px;
       background-color: #e6e6e6;
       border-radius: 6px;
       text-align: center;
+      white-space: pre-wrap;
     }
+
     .titulo-loja {
       font-size: 20px;
       font-weight: bold;
@@ -66,17 +100,28 @@
   </style>
 </head>
 <body>
+  <!-- Barra superior com botão de sair -->
+  <div class="top-bar">
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+
   <h1>Controle de Estoque</h1>
   <div class="container">
     <label for="loja">Selecione a loja:</label>
     <select id="loja" onchange="atualizarTituloLoja()">
-      <option value="Loja 01">Loja 01</option>
-      <option value="Loja 02">Loja 02</option>
-      <option value="Loja 03">Loja 03</option>
-      <option value="Loja 04">Loja 04</option>
+      <option value="INBRANDS – PLATINUM">INBRANDS – PLATINUM</option>
+      <option value="TH - NOVO HAMBURGO">TH - NOVO HAMBURGO</option>
+      <option value="ELLUS - BARRA SUL">ELLUS - BARRA SUL</option>
+      <option value="ELLUS - BELAS RS">ELLUS - BELAS RS</option>
+      <option value="ELLUS - IGUATEMI RS">ELLUS - IGUATEMI RS</option>
+      <option value="RC25 - MOINHOS SHOPPING">RC25 - MOINHOS SHOPPING</option>
+      <option value="RC40 - IGUATEMI RS">RC40 - IGUATEMI RS</option>
+      <option value="VR - BARRA SUL (MUDANÇA PARA RICHARDS)">VR - BARRA SUL (MUDANÇA PARA RICHARDS)</option>
+      <option value="VR - PORTO ALEGRE">VR - PORTO ALEGRE</option>
+      <option value="RC149 - BARRA SUL">RC149 - BARRA SUL</option>
     </select>
 
-    <div class="titulo-loja" id="tituloLoja">Estoque - Loja 01</div>
+    <div class="titulo-loja" id="tituloLoja">Estoque - INBRANDS – PLATINUM</div>
 
     <label for="material">Selecione o material:</label>
     <select id="material">
@@ -95,9 +140,10 @@
     </select>
 
     <label for="quantidade">Quantidade a dar baixa:</label>
-    <input type="number" id="quantidade" min="1" placeholder="Digite a quantidade">
+    <input type="number" id="quantidade" min="1" placeholder="Digite a quantidade" />
 
     <button onclick="darBaixa()">Dar Baixa</button>
+
     <div class="resultado" id="resultado"></div>
   </div>
 
@@ -119,6 +165,10 @@
 
       const resultado = `Baixa realizada:\nLoja: ${loja}\nMaterial: ${material}\nQuantidade: ${quantidade}`;
       document.getElementById('resultado').innerText = resultado;
+    }
+
+    function sair() {
+      window.location.href = "login.html"; // Altere se necessário
     }
 
     window.onload = atualizarTituloLoja;
