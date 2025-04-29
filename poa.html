@@ -8,75 +8,120 @@
     body {
       font-family: Arial, sans-serif;
       background-color: #f2f2f2;
-      color: #333;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1 {
-      text-align: center;
-      color: #444;
+      margin-top: 30px;
+      color: #333;
     }
-    .loja {
-      background-color: #e6e6e6;
+    .container {
+      background-color: #ffffff;
       border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin: 24px;
+      width: 100%;
+      max-width: 500px;
     }
-    .loja h2 {
-      margin-top: 0;
-      color: #222;
-    }
-    ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
-    li {
-      margin-bottom: 6px;
-      padding: 8px;
-      background-color: #fff;
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #bbb;
       border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .resultado {
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #e6e6e6;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .titulo-loja {
+      font-size: 20px;
+      font-weight: bold;
+      color: #444;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>Estoque das Lojas - POA</h1>
+  <h1>Controle de Estoque</h1>
+  <div class="container">
+    <label for="loja">Selecione a loja:</label>
+    <select id="loja" onchange="atualizarTituloLoja()">
+      <option value="Loja 01">Loja 01</option>
+      <option value="Loja 02">Loja 02</option>
+      <option value="Loja 03">Loja 03</option>
+      <option value="Loja 04">Loja 04</option>
+    </select>
 
-  <div class="loja">
-    <h2>Loja 01</h2>
-    <ul>
-      <li>Ar Condicionado 18.000 BTUs</li>
-      <li>Lâmpadas LED 12W - 20 un</li>
-      <li>Sensor de presença - 5 un</li>
-    </ul>
+    <div class="titulo-loja" id="tituloLoja">Estoque - Loja 01</div>
+
+    <label for="material">Selecione o material:</label>
+    <select id="material">
+      <option value="Ar Condicionado 18.000 BTUs">Ar Condicionado 18.000 BTUs</option>
+      <option value="Lâmpadas LED 12W">Lâmpadas LED 12W</option>
+      <option value="Sensor de presença">Sensor de presença</option>
+      <option value="Painel Elétrico 12 disjuntores">Painel Elétrico 12 disjuntores</option>
+      <option value="Interruptor Simples">Interruptor Simples</option>
+      <option value="Tomada 20A">Tomada 20A</option>
+      <option value="Fita isolante">Fita isolante</option>
+      <option value="Spot de trilho">Spot de trilho</option>
+      <option value="Sensor de fumaça">Sensor de fumaça</option>
+      <option value="Cabo flexível 2,5mm">Cabo flexível 2,5mm</option>
+      <option value="Disjuntor 10A">Disjuntor 10A</option>
+      <option value="Luminária de emergência">Luminária de emergência</option>
+    </select>
+
+    <label for="quantidade">Quantidade a dar baixa:</label>
+    <input type="number" id="quantidade" min="1" placeholder="Digite a quantidade">
+
+    <button onclick="darBaixa()">Dar Baixa</button>
+    <div class="resultado" id="resultado"></div>
   </div>
 
-  <div class="loja">
-    <h2>Loja 02</h2>
-    <ul>
-      <li>Painel Elétrico 12 disjuntores</li>
-      <li>Interruptor Simples - 10 un</li>
-      <li>Tomada 20A - 6 un</li>
-    </ul>
-  </div>
+  <script>
+    function atualizarTituloLoja() {
+      const lojaSelecionada = document.getElementById('loja').value;
+      document.getElementById('tituloLoja').innerText = `Estoque - ${lojaSelecionada}`;
+    }
 
-  <div class="loja">
-    <h2>Loja 03</h2>
-    <ul>
-      <li>Fita isolante - 15 un</li>
-      <li>Spot de trilho - 10 un</li>
-      <li>Sensor de fumaça - 3 un</li>
-    </ul>
-  </div>
+    function darBaixa() {
+      const loja = document.getElementById('loja').value;
+      const material = document.getElementById('material').value;
+      const quantidade = document.getElementById('quantidade').value;
 
-  <div class="loja">
-    <h2>Loja 04</h2>
-    <ul>
-      <li>Cabo flexível 2,5mm - 100m</li>
-      <li>Disjuntor 10A - 10 un</li>
-      <li>Luminária de emergência - 4 un</li>
-    </ul>
-  </div>
+      if (!quantidade || quantidade <= 0) {
+        document.getElementById('resultado').innerText = 'Digite uma quantidade válida.';
+        return;
+      }
+
+      const resultado = `Baixa realizada:\nLoja: ${loja}\nMaterial: ${material}\nQuantidade: ${quantidade}`;
+      document.getElementById('resultado').innerText = resultado;
+    }
+
+    window.onload = atualizarTituloLoja;
+  </script>
 </body>
 </html>
