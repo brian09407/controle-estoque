@@ -25,7 +25,7 @@
       padding: 24px;
       margin: 24px;
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
     }
     select, input[type="number"] {
       width: 100%;
@@ -63,6 +63,19 @@
       margin-bottom: 20px;
       text-align: center;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
   </style>
 </head>
 <body>
@@ -85,45 +98,111 @@
     <div class="titulo-loja" id="tituloLoja">Estoque - INBRANDS – PLATINUM</div>
 
     <label for="material">Selecione o material:</label>
-    <select id="material">
-      <option value="Lâmpada Ar 111 Led 8,5W Bivolt 2700K Ledvance">Lâmpada Ar 111 Led 8,5W Bivolt 2700K Ledvance</option>
-      <option value="Luminária Led Tubular T8 16W 3000k 120 cm">Luminária Led Tubular T8 16W 3000k 120 cm</option>
-      <option value="Lâmpada Mini Dicroica Led 4w Mr11 Gu10 3000k Ledvance">Lâmpada Mini Dicroica Led 4w Mr11 Gu10 3000k Ledvance</option>
-      <option value="Lâmpada led dicroica Gu10 4,5w / MR 16 – 3000k Ledvance">Lâmpada led dicroica Gu10 4,5w / MR 16 – 3000k Ledvance</option>
-      <option value="Par 38 2700k 14w Ledvance">Par 38 2700k 14w Ledvance</option>
-      <option value="Soquete Gu10">Soquete Gu10</option>
-      <option value="Fita isolante Scotch 33+ 19MMx20M">Fita isolante Scotch 33+ 19MMx20M</option>
-      <option value="Luminária de emergência">Luminária de emergência</option>
-    </select>
+    <select id="material"></select>
 
     <label for="quantidade">Quantidade a dar baixa:</label>
     <input type="number" id="quantidade" min="1" placeholder="Digite a quantidade">
 
     <button onclick="darBaixa()">Dar Baixa</button>
     <div class="resultado" id="resultado"></div>
+
+    <table id="tabelaEstoque">
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th>Quantidade</th>
+          <th>Data da Retirada</th>
+          <th>Saldo Restante</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
+    const materiais = [
+      "Lâmpada Ar 111 Led 8,5W Bivolt 2700K Ledvance",
+      "Luminária Led Tubular T8 16W 3000k 120 cm",
+      "Lâmpada Mini Dicroica Led 4w Mr11 Gu10 3000k Ledvance",
+      "Lâmpada led dicroica Gu10 4,5w / MR 16 – 3000k Ledvance",
+      "Par 38 2700k 14w Ledvance",
+      "Soquete Gu10",
+      "Fita isolante Scotch 33+ 19MMx20M",
+      "Luminária de emergência"
+    ];
+
+    let estoque = JSON.parse(localStorage.getItem('estoque')) || {};
+    let historico = JSON.parse(localStorage.getItem('historico')) || {};
+
+    function salvarEstoque() {
+      localStorage.setItem('estoque', JSON.stringify(estoque));
+      localStorage.setItem('historico', JSON.stringify(historico));
+    }
+
     function atualizarTituloLoja() {
       const lojaSelecionada = document.getElementById('loja').value;
       document.getElementById('tituloLoja').innerText = `Estoque - ${lojaSelecionada}`;
+      if (!estoque[lojaSelecionada]) {
+        estoque[lojaSelecionada] = {};
+        historico[lojaSelecionada] = [];
+        materiais.forEach(m => estoque[lojaSelecionada][m] = 30);
+        salvarEstoque();
+      }
+      atualizarTabela();
+    }
+
+    function atualizarTabela() {
+      const loja = document.getElementById('loja').value;
+      const tbody = document.querySelector('#tabelaEstoque tbody');
+      tbody.innerHTML = '';
+      (historico[loja] || []).forEach(registro => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${registro.material}</td>
+                        <td>${registro.quantidade}</td>
+                        <td>${registro.data}</td>
+                        <td>${estoque[loja][registro.material]}</td>`;
+        tbody.appendChild(tr);
+      });
     }
 
     function darBaixa() {
       const loja = document.getElementById('loja').value;
       const material = document.getElementById('material').value;
-      const quantidade = document.getElementById('quantidade').value;
+      const quantidade = parseInt(document.getElementById('quantidade').value);
 
       if (!quantidade || quantidade <= 0) {
         document.getElementById('resultado').innerText = 'Digite uma quantidade válida.';
         return;
       }
 
+      if (estoque[loja][material] - quantidade < 0) {
+        document.getElementById('resultado').innerText = 'Estoque insuficiente.';
+        return;
+      }
+
+      estoque[loja][material] -= quantidade;
+
+      const data = new Date().toLocaleDateString();
+      historico[loja].push({ material, quantidade, data });
+
+      salvarEstoque();
+
       const resultado = `Baixa realizada:\nLoja: ${loja}\nMaterial: ${material}\nQuantidade: ${quantidade}`;
       document.getElementById('resultado').innerText = resultado;
+      atualizarTabela();
     }
 
-    window.onload = atualizarTituloLoja;
+    window.onload = () => {
+      const materialSelect = document.getElementById('material');
+      materialSelect.innerHTML = '';
+      materiais.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        materialSelect.appendChild(opt);
+      });
+      atualizarTituloLoja();
+    };
   </script>
 </body>
 </html>
